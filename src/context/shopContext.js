@@ -7,7 +7,7 @@ const client = Client.buildClient({
   storefrontAccessToken: process.env.REACT_APP_SHOPIFY_API,
 });
 
-const ShopContext = React.createContext("Testing Context");
+const ShopContext = React.createContext();
 
 class ShopProvider extends Component {
   state = {
@@ -45,13 +45,33 @@ class ShopProvider extends Component {
     this.setState({ product: product });
   }
 
-  async addItemToCart() {}
+  async addItemToCheckout(variantId, quantity) {
+    const checkoutId = this.state.checkout.id;
+    const lineItemsToAdd = [
+      {
+        variantId: variantId,
+        quantity: parseInt(quantity, 10),
+      },
+    ];
+
+    const checkout = await client.checkout.addLineItems(
+      checkoutId,
+      lineItemsToAdd
+    );
+
+    this.setState({ checkout: checkout });
+    this.openCart();
+  }
 
   async removeLineItem(lineItemsIdsToRemove) {}
 
-  openCart() {}
+  openCart() {
+    this.setState({ isCartOpen: true });
+  }
 
-  closeCart() {}
+  closeCart() {
+    this.setState({ isCartOpen: false });
+  }
 
   openMenu() {}
 
@@ -64,12 +84,12 @@ class ShopProvider extends Component {
           ...this.state,
           fetchAllProducts: this.fetchAllProducts.bind(this),
           fetchProductWithHandle: this.fetchProductWithHandle.bind(this),
-          addItemToCart: this.addItemToCart.bind(this),
-          removeLineItem: this.removeLineItem,
-          openCart: this.openCart,
-          closeCart: this.closeCart,
-          openMenu: this.openMenu,
-          closeMenu: this.closeMenu,
+          addItemToCheckout: this.addItemToCheckout.bind(this),
+          removeLineItem: this.removeLineItem.bind(this),
+          openCart: this.openCart.bind(this),
+          closeCart: this.closeCart.bind(this),
+          openMenu: this.openMenu.bind(this),
+          closeMenu: this.closeMenu.bind(this),
         }}
       >
         {this.props.children}
@@ -77,8 +97,6 @@ class ShopProvider extends Component {
     );
   }
 }
-
-// const ShopConsumer = ShopContext.Consumer;
 
 export { ShopProvider, ShopContext };
 
